@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { COMPANY_DETAILS } from '../data/company';
 import { BUSINESS_VERTICALS } from '../data/businesses';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, ShieldCheck, AlertCircle, Building, User, MessageSquare } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, ShieldCheck, AlertCircle, Building, User, MessageSquare, MessageCircle } from 'lucide-react';
+import { openWhatsAppInquiry, getWhatsAppUrl, DISPLAY_WHATSAPP_NUMBER, BUSINESS_WHATSAPP_NUMBER } from '../utils/whatsapp';
 
 export const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ export const ContactPage: React.FC = () => {
 
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +35,14 @@ export const ContactPage: React.FC = () => {
     setErrorMessage('');
     setStatus('submitting');
 
+    // Automatically generate and open WhatsApp with pre-filled professional inquiry message
+    const url = getWhatsAppUrl(formData);
+    setGeneratedWhatsAppUrl(url);
+
     setTimeout(() => {
+      openWhatsAppInquiry(formData);
       setStatus('success');
-    }, 800);
+    }, 400);
   };
 
   return (
@@ -62,26 +69,54 @@ export const ContactPage: React.FC = () => {
           
           {/* Left: Contact Form (Clean White Card) */}
           <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 lg:p-9 border border-slate-200 shadow-card-hover">
-            <h2 className="text-xl font-black text-navy-900 mb-1">
-              Corporate Project Enquiry
-            </h2>
-            <p className="text-xs text-slate-500 mb-5">
-              Complete the details below to route your request directly to our leadership team.
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-black text-navy-900 mb-0.5">
+                  Corporate Project Enquiry
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Complete your details below — submitting automatically pre-fills WhatsApp for immediate response.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shrink-0 self-start sm:self-auto">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>WhatsApp: {DISPLAY_WHATSAPP_NUMBER}</span>
+              </div>
+            </div>
 
             {status === 'success' ? (
-              <div className="py-10 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="py-10 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-sm">
+                  <CheckCircle2 className="w-9 h-9" />
                 </div>
-                <h3 className="text-xl font-black text-navy-900">Enquiry Submitted Successfully</h3>
-                <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
-                  Thank you, <span className="font-bold text-navy-900">{formData.name}</span>. Your project requirement has been dispatched to our registered Ranchi desk. We will respond promptly.
-                </p>
-                <div className="pt-3">
+                <div>
+                  <h3 className="text-xl font-black text-navy-900">Enquiry Submitted & WhatsApp Opened</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto leading-relaxed mt-1">
+                    Thank you, <span className="font-bold text-navy-900">{formData.name}</span>. Your enquiry details have been formatted and opened directly in WhatsApp with our executive desk at <strong className="text-navy-900">{DISPLAY_WHATSAPP_NUMBER}</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-center gap-2 max-w-md mx-auto">
+                  <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>If WhatsApp did not open automatically, tap below:</span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  {generatedWhatsAppUrl && (
+                    <a
+                      href={generatedWhatsAppUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Open WhatsApp Chat</span>
+                    </a>
+                  )}
                   <button
                     onClick={() => {
                       setStatus('idle');
+                      setGeneratedWhatsAppUrl('');
                       setFormData({
                         name: '',
                         company: '',
@@ -92,7 +127,7 @@ export const ContactPage: React.FC = () => {
                         message: ''
                       });
                     }}
-                    className="px-5 py-2 rounded-lg bg-navy-900 text-gold-400 text-xs font-bold uppercase tracking-wider"
+                    className="px-6 py-2.5 rounded-lg bg-navy-900 text-gold-400 text-xs font-bold uppercase tracking-wider hover:bg-navy-800 transition-colors"
                   >
                     Submit Another Enquiry
                   </button>
@@ -232,14 +267,18 @@ export const ContactPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                    <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Automatically connects to WhatsApp ({DISPLAY_WHATSAPP_NUMBER})</span>
+                  </div>
                   <button
                     type="submit"
                     disabled={status === 'submitting'}
-                    className="w-full py-3 rounded-lg bg-navy-900 hover:bg-navy-800 text-gold-400 text-xs font-black uppercase tracking-wider shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-7 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{status === 'submitting' ? 'DISPATCHING...' : 'SEND ENQUIRY'}</span>
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{status === 'submitting' ? 'OPENING WHATSAPP...' : 'SUBMIT & OPEN WHATSAPP'}</span>
                   </button>
                 </div>
               </form>
@@ -248,6 +287,33 @@ export const ContactPage: React.FC = () => {
 
           {/* Right: Verified Official Contact Cards */}
           <div className="lg:col-span-5 space-y-5">
+
+            {/* Direct WhatsApp Quick Connect Card */}
+            <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-6 text-white shadow-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold tracking-widest text-emerald-200 uppercase">
+                  INSTANT CORPORATE MESSAGING
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              </div>
+              <h3 className="text-lg font-black text-white leading-tight">
+                Connect Directly on Business WhatsApp
+              </h3>
+              <p className="text-xs text-emerald-100 leading-relaxed">
+                Need an immediate operational consultation or quick quote? Speak directly with our commercial desk.
+              </p>
+              <div className="pt-2">
+                <a
+                  href={`https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Vijaybhumi Group, I would like to inquire about your corporate services.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 text-xs font-black uppercase tracking-wider shadow-md transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                  <span>Chat on WhatsApp: {DISPLAY_WHATSAPP_NUMBER}</span>
+                </a>
+              </div>
+            </div>
             
             {/* Registered Office Card (Clean White) */}
             <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-card-subtle space-y-3.5">
@@ -271,7 +337,7 @@ export const ContactPage: React.FC = () => {
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-gold-600 shrink-0" />
                   <div>
-                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Direct Phone:</span>
+                    <span className="text-slate-400 block text-[9px] uppercase font-bold">Direct Phone / WhatsApp:</span>
                     <a href={`tel:${COMPANY_DETAILS.contact.phone}`} className="font-bold text-navy-900 hover:text-gold-600 transition-colors">
                       {COMPANY_DETAILS.contact.displayPhone}
                     </a>
