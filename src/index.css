@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --navy-main: #0B1B3D;
+    --gold-main: #EAB308;
+  }
+
+  body {
+    background-color: #F8FAFC;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  }
+
+  /* Custom clean scrollbar */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F1F5F9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0B1B3D;
+  }
+}
+
+@layer utilities {
+  .bg-subtle-pattern {
+    background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .wave-divider-top {
+    clip-path: ellipse(65% 100% at 50% 100%);
+  }
+
+  .wave-divider-bottom {
+    clip-path: ellipse(70% 100% at 50% 0%);
+  }
+
+  .curve-badge {
+    border-radius: 50px 0 50px 0;
+  }
+}
